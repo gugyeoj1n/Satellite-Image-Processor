@@ -28,11 +28,17 @@ namespace Satellite_Image_Processor.Core
                 Mat gray = new( );
                 Cv2.CvtColor( src, gray, ColorConversionCodes.BGR2GRAY );
 
-                Mat thresh = new( );
-                Cv2.Threshold( gray, thresh, 120, 255, ThresholdTypes.Binary );
-
                 Mat equalized = new( );
-                Cv2.EqualizeHist( thresh, equalized );
+                Cv2.EqualizeHist( gray, equalized );
+
+                Cv2.GaussianBlur( equalized, equalized, new Size( 5, 5 ), 0 );
+
+                Mat binary = new( );
+                Cv2.Threshold( equalized, binary, 120, 255, ThresholdTypes.Binary );
+
+                Mat morph = new( );
+                Mat kernel = Cv2.GetStructuringElement( MorphShapes.Rect, new Size( 3, 3 ) );
+                Cv2.MorphologyEx( binary, morph, MorphTypes.Open, kernel );
 
                 string filename = Path.GetFileNameWithoutExtension( path );
                 string outputPath = Path.Combine( outputDir, filename + "_processed.png" );
