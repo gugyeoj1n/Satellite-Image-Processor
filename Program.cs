@@ -29,6 +29,52 @@ class Program
 
     static void OnFileCreated( object sender, FileSystemEventArgs e )
     {
-        Console.WriteLine( $"\n[감지됨] 파일 생성: {e.Name}" );
+        try
+        {
+            var fileInfo = new FileInfo( e.FullPath );
+
+            WaitUntilFileIsReady( e.FullPath );
+
+            Console.WriteLine( $"\n[파일 감지 완료] {fileInfo.Name}" );
+            Console.WriteLine( $"  ├ 경로       : {fileInfo.FullName}" );
+            Console.WriteLine( $"  ├ 용량       : {fileInfo.Length / ( 1024.0 * 1024.0 ):F2} MB" );
+            Console.WriteLine( $"  ├ 확장자     : {fileInfo.Extension}" );
+            Console.WriteLine( $"  ├ 생성 시각  : {fileInfo.CreationTime}" );
+
+            // 해상도 출력 (가능한 경우)
+            if ( fileInfo.Extension is ".jpg" or ".jpeg" or ".png" or ".bmp" )
+            {
+                using var image = System.Drawing.Image.FromFile( e.FullPath );
+                Console.WriteLine( $"  └ 해상도     : {image.Width} x {image.Height}" );
+            }
+            else
+            {
+                Console.WriteLine( $"  └ 해상도     : (지원되지 않는 형식)" );
+            }
+        }
+        catch ( Exception ex )
+        {
+            Console.WriteLine( $"[오류] 메타데이터 추출 실패: {ex.Message}" );
+        }
     }
+
+    static void WaitUntilFileIsReady( string path )
+    {
+        while ( true )
+        {
+            try
+            {
+                using FileStream stream = File.Open( path, FileMode.Open, FileAccess.Read, FileShare.None );
+                if ( stream.Length > 0 )
+                    break;
+            }
+            catch
+            {
+                
+            }
+
+            Thread.Sleep( 200 );
+        }
+    }
+
 }
