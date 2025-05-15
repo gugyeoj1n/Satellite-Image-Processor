@@ -29,7 +29,7 @@ namespace Satellite_Image_Processor.Core
                 Cv2.CvtColor( src, gray, ColorConversionCodes.BGR2GRAY );
 
                 Mat thresh = new( );
-                Cv2.Threshold( gray, thresh, 180, 255, ThresholdTypes.Binary );
+                Cv2.Threshold( gray, thresh, 120, 255, ThresholdTypes.Binary );
 
                 Mat equalized = new( );
                 Cv2.EqualizeHist( thresh, equalized );
