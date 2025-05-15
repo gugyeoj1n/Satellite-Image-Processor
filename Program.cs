@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using OpenCvSharp;
 
 class Program
 {
@@ -56,6 +57,7 @@ class Program
         {
             Console.WriteLine( $"[오류] 메타데이터 추출 실패: {ex.Message}" );
         }
+        ProcessImage( e.FullPath );
     }
 
     static void WaitUntilFileIsReady( string path )
@@ -77,4 +79,39 @@ class Program
         }
     }
 
+    static void ProcessImage( string path )
+    {
+        try
+        {
+            string processedDir = Path.Combine( Environment.CurrentDirectory, "Processed" );
+            if ( !Directory.Exists( processedDir ) )
+                Directory.CreateDirectory( processedDir );
+
+            var src = Cv2.ImRead( path, ImreadModes.Color );
+            if ( src.Empty( ) )
+            {
+                Console.WriteLine( "[오류] 이미지를 불러올 수 없습니다." );
+                return;
+            }
+
+            Mat gray = new( );
+            Cv2.CvtColor( src, gray, ColorConversionCodes.BGR2GRAY );
+
+            Mat thresholded = new( );
+            Cv2.Threshold( gray, thresholded, 180, 255, ThresholdTypes.Binary );
+
+            Mat equalized = new( );
+            Cv2.EqualizeHist( thresholded, equalized );
+
+            string filename = Path.GetFileNameWithoutExtension( path );
+            string outPath = Path.Combine( processedDir, filename + "_processed.png" );
+            Cv2.ImWrite( outPath, equalized );
+
+            Console.WriteLine( $"[전처리 완료] → {outPath}" );
+        }
+        catch ( Exception ex )
+        {
+            Console.WriteLine( $"[오류] 전처리 중 실패: {ex.Message}" );
+        }
+    }
 }
